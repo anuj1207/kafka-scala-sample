@@ -2,13 +2,15 @@ package producer
 
 import java.util.Properties
 
-import org.apache.kafka.clients.producer.{KafkaProducer, Producer, ProducerRecord}
+import models.User
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 
 
 object MyProducer extends App{
 
-  val key = "myKey"
-  val value = "myValue"
+  /*val key = "myKey"
+  val value = "myValue"*/
+  val topic = "sampleTopic"
   val props = new Properties()
 
   props.put("bootstrap.servers", "localhost:9092")
@@ -24,19 +26,23 @@ object MyProducer extends App{
   props.put("buffer.memory", "33554432")
 
   props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-  props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+  props.put("value.serializer", "serialization.UserSerializer")
 
-  val producer = new KafkaProducer[String, String](props)
+  val producer = new KafkaProducer[String, User](props)
 
   try {
     println("Sending messages to kafka broker")
     for(i <- 1 to 10){
-      producer.send(new ProducerRecord[String, String]("myTopic", s"$i",s"hello$i"))
+      val key = i.toString
+      val value = User(s"sampleName $i")
+      val record = new ProducerRecord[String, User](topic, key, value)
+      producer.send(record)
+      println(s"Data sent::${value.name}")
     }
     producer.close()
-    println("Data sent")
+    println("Data sending finished")
   }catch {
-    case x: Exception => println(s"Yaar ye error hai ::::${x.getMessage}")
+    case x: Exception => println(s"Error ::::${x.getMessage}")
   }
 
 }
